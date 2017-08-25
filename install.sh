@@ -47,13 +47,13 @@ docker run \
     -p 443:443 \
     -e "ENABLE_IPV6=true" \
     -v /usr/share/nginx/html \
-    -v /srv/certs:/etc/nginx/certs:ro \
-    -v /srv/tmpl/nginx.tmpl:/app/nginx.tmpl:ro \
-    -v /srv/tmpl/proxy.conf:/etc/nginx/proxy.conf:ro \
-    -v /srv/vhost/:/etc/nginx/vhost.d \
-    -v /srv/git/apache-nginx-referral-spam-blacklist/referral-spam.conf:/etc/nginx/referral-spam.conf:ro \
+    -v $HOME/dev/Data/Docker/srv/certs:/etc/nginx/certs:ro \
+    -v $HOME/dev/Data/Docker/srv/tmpl/nginx.tmpl:/app/nginx.tmpl:ro \
+    -v $HOME/dev/Data/Docker/srv/tmpl/proxy.conf:/etc/nginx/proxy.conf:ro \
+    -v $HOME/dev/Data/Docker/srv/vhost/:/etc/nginx/vhost.d \
+    -v $HOME/dev/Data/Docker/srv/git/apache-nginx-referral-spam-blacklist/referral-spam.conf:/etc/nginx/referral-spam.conf:ro \
     -v /var/run/docker.sock:/tmp/docker.sock:ro \
-    braingamer/nginx-proxy-arm &>/dev/null
+     jwilder/nginx-proxy:alpine &>/dev/null
 
 # Install the Let's Encrypt Reverse Proxy companion
 echo ">> Running Let's Encrypt Reverse Proxy companion..."
@@ -61,10 +61,10 @@ docker run \
   --restart=always \
   --name=docker-auto-reverse-proxy-companion \
   -d \
-  -v /srv/certs:/etc/nginx/certs:rw \
+  -v $HOME/dev/Data/Docker/srv/certs:/etc/nginx/certs:rw \
   --volumes-from docker-auto-reverse-proxy \
   -v /var/run/docker.sock:/var/run/docker.sock:ro \
-  budrom/rpi-letsencrypt-nginx-proxy-companion &>/dev/null
+  jrcs/letsencrypt-nginx-proxy-companion &>/dev/null
 
 # Autoupdate Dockers from time to time and cleanup old images
 echo ">> Running Docker Auto-Update manager..."
