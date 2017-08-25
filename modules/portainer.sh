@@ -17,7 +17,7 @@ docker run \
     -e "VIRTUAL_PORT=9000" \
     -e "LETSENCRYPT_HOST=$PORTAINER_DOMAIN" \
     -e "LETSENCRYPT_EMAIL=$LETSENCRYPT_EMAIL" \
-    portainer/portainer:linux-arm &>/dev/null
+    portainer/portainer &>/dev/null
 
 # Wait until the docker is up and running
 echo -n ">> Waiting for Portainer to start..."
