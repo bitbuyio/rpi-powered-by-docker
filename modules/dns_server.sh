@@ -9,32 +9,9 @@ API_KEY=""
 CRONTAB_TIME="0 10 * * *"
 ENABLE_ADBLOCK=false
 
-# Check if systemd-resolve is running, and if yes disable the Stub listener in order to get the port 53/udp free, forever
-if [ `pstree -p | grep systemd-resolve` ]; then
-  echo ">> It seems your system is running systemd-resolve. In order to continue this script MUST disable the Stub listener in order to free up port 53/udp."
-
-  # Stop and Disable systemd-resolved, permanently
-  echo ">> Disabling permanently systemd-resolved Stub listener..."
-  sed -i 's/#DNSStubListener=udp/DNSStubListener=no/g' /etc/systemd/resolved.conf &>/dev/null
-  systemctl restart systemd-resolved.service
-fi
-
 # Prepare the DNS Server data folder
-echo ">> Creating /srv/data/$DNSSERVER_DOMAIN folder..."
-mkdir -p "/srv/data/$DNSSERVER_DOMAIN" &>/dev/null
-
-# Enable IPv6 support in Docker
-echo ">> Enabling IPv6 support in your Docker service..."
-if ! [ -f "/etc/docker/daemon.json" ]; then
-  echo "{\"ipv6\": true,\"fixed-cidr-v6\": \"fd00:dead:beef::/48\"}" > /etc/docker/daemon.json
-else
-  echo -e "\nIMPORTANT! ADD THIS MANUALLY TO YOUR '/etc/docker/daemon.json' FILE:\n\n{\"ipv6\": true,\"fixed-cidr-v6\": \"fd00:dead:beef::/48\"}\n\nTO ENABLE IPV6 SUPPORT IN DOCKER!\n"
-fi
-
-# Set IPv6 SLAAC to HWADDR in order to get always the same IPv6 address
-echo ">> Setting IPv6 SLAAC to HWADDR modus..."
-sed -i 's/slaac private/slaac hwaddr/g' /etc/dhcpcd.conf
-systemctl restart dhcpcd.service
+echo ">> Creating $HOME/Dev/Data/Docker/srv/data/$DNSSERVER_DOMAIN folder..."
+mkdir -p "$HOME/Dev/Data/Docker/srv/data/$DNSSERVER_DOMAIN" &>/dev/null
 
 # Provide IPv6 NAT feature
 echo ">> Enabling IPv6 NAT..."
@@ -44,9 +21,8 @@ docker run \
     --restart=always \
     --privileged \
     --net=host \
-    -v /lib/modules:/lib/modules:ro \
     -v /var/run/docker.sock:/var/run/docker.sock:ro \
-    robbertkl/ipv6nat:latest-armhf &>/dev/null
+    robbertkl/ipv6nat:latest-amd64 &>/dev/null
 
 # Install DNS Server
 echo ">> Running DNS Server..."
@@ -64,7 +40,7 @@ docker run \
     -e "LETSENCRYPT_EMAIL=$LETSENCRYPT_EMAIL" \
     -p 53:53 \
     -p 53:53/udp \
-    -v "/srv/data/$DNSSERVER_DOMAIN:/srv/data" \
+    -v "$HOME/Dev/Data/Docker/srv/data/$DNSSERVER_DOMAIN:/srv/data" \
     julianxhokaxhiu/docker-powerdns:latest-armhf &>/dev/null
 
 # Wait until the docker is up and running
